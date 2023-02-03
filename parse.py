@@ -8,7 +8,7 @@ HEADERS = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleW
 
 class Train:
     def __init__(self, date=None, number=None, train_route=None, train_type=None, city_from=None, city_to=None,
-                 departure=None, arrival=None, travel_time=None, places=None):
+                 departure=None, arrival=None, travel_time=None, places=None, link=None):
         self.date = date
         self.number = number
         self.train_route = train_route
@@ -19,9 +19,10 @@ class Train:
         self.arrival = arrival
         self.travel_time = travel_time
         self.places = places
+        self.link = link
 
     def get_place_info(self, place_type):
-        return place_type+self.places[place_type]
+        return place_type + self.places[place_type]
 
     def get_all_place_info(self):
         items = []
@@ -46,19 +47,19 @@ def get_content(html):
     date = soup.find('div', class_='sch-title__date h3').get_text()
 
     trains = []
-    for item in items:
-        places = dict()
+    for i, item in enumerate(items):
+        places = []
         all_price_type = item.find_all('div', class_='sch-table__t-item has-quant')
         for el in all_price_type:
             typ = el.find('div', class_='sch-table__t-name').get_text()
-            if typ == '':
-                typ = '---'
             amount = el.find('span').get_text()
             cost = el.find('span', 'ticket-cost').get_text()
-            places[typ] = (amount, cost)
+            places.append((typ, amount, cost))
 
-        if not places:
-            places[''] = ('Мест нет', '')
+        if len(places) == 0:
+            places.append(('Мест нет', '', ''))
+
+        print(f'trains number {i}\n{places}\n{len(all_price_type)}\n')
 
         trains.append(Train(date=date,
                             number=item.find('span', class_='train-number').get_text(),
@@ -70,7 +71,8 @@ def get_content(html):
                             arrival=''.join(item.find('div', class_='sch-table__time train-to-time').get_text()
                                             .split()),
                             travel_time=item.find('div', class_='sch-table__duration train-duration-time').get_text(),
-                            places=places))
+                            places=places,
+                            link='https://pass.rw.by'+item.find('a', class_='sch-table__route').get('href'),))
     return trains
 
 
@@ -93,13 +95,5 @@ def get_trains_info(city_from, city_to, date):
     return trains, url
 
 
-if __name__ =='__main__':
-    trains_info, url = get_trains_info('Гомель', 'Минск', '2022-08-27')
-    print(f'{trains_info[0].date}\n')
-    print(url)
-    for i, train in enumerate(trains_info):
-        print(f'{i+1} train\n')
-        print(train.get_text())
-        for key in train.places:
-            print(f'Тип:{key}  Количество:{train.places[key][0]}  Цена:{train.places[key][1]} ')
-
+if __name__ == '__main__':
+    pass

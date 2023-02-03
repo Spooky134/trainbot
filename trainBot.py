@@ -44,13 +44,11 @@ def telegram_bot(tk):
         bot.send_message(message.from_user.id, 'Секундочку...')
         trains, url = get_trains_info(city_from=city_from, city_to=city_to, date=date)
         for train in trains:
-            mes = f'{train.train_type}\n{train.number} {train.train_route}\n{train.city_from}' \
+            mes = f'{train.link}\n{train.train_type}\n{train.number} {train.train_route}\n{train.city_from}' \
                   f' ({train.departure}) --> {train.city_to} ({train.arrival})\nВремя в пути: {train.travel_time}\n'
-            for key in train.places:
-                mes += f'Тип:{key}  Количество:{train.places[key][0]}  Цена:{train.places[key][1]}\n'
+            for places in train.places:
+                mes += f'Тип:{places[0]}  Количество:{places[1]}  Цена:{places[2]}\n'
             bot.send_message(message.from_user.id, mes)
-
-          # наша клавиатура
 
     bot.polling()
 
